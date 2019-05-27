@@ -1,0 +1,14 @@
+
+.PHONY: all
+all :
+	VZ_PLATFORM=VML4030 \
+	PREFIX=arm-oe-linux-gnueabi- \
+	make
+
+.PHONY: clean
+clean :
+	make clean
+	  
+.PHONY: install
+install:
+

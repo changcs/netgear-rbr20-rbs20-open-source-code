@@ -1,0 +1,98 @@
+#!/bin/sh /etc/rc.common
+START=19
+
+set_if_empty() {
+    SYM="$1"
+    
+    # read value, make sure d2d is up.
+    until VAL=$(d2 -s ${SYM}); do sleep .1; done
+    if [ "${VAL}empty" == "empty" ]; 
+    then
+        d2 -c ${SYM} -- "$2"; 
+    fi
+}
+
+start() {
+      # Start d2
+
+      # We may need to chmod following in future.
+      mkdir -p /tmp/d2
+
+      # TODO:
+      # We should source a config file that defines where R/W
+      # filesystem is mounted.
+      # Hard-coded for now
+      PERSISTDIR=/tmp/arlo/d2d
+
+      mkdir -p ${PERSISTDIR}
+      
+      if [ "`/bin/config get enable_arlo_function`" = "1" ];then
+	  BETA_XTRA="-d /etc/d2"
+      fi
+
+      /usr/bin/d2d ${BETA_XTRA} ${PERSISTDIR} &
+
+
+      # 
+      # generate Arlo SSID if not in DB (ODM requested)
+      #
+      set_if_empty arlocfg.ssid  arlo_`cat /dev/urandom | tr -cd 'a-zA-Z0-9_\-' | head -c 26`;
+      set_if_empty arlocfg.passphrase `cat /dev/urandom | tr -cd 'a-zA-Z0-9_\-' | head -c 32`;
+
+      # ODMSTART ORBI
+        #decide whether vzdaemon should run 
+        if [ "`/bin/config get wlg_arlo_endis_arloNet`" = "1" ];then
+            d2 -c arlocfg.enabled true
+        else
+            d2 -c arlocfg.enabled false
+        fi
+
+        #not allow vzdaemon set static ARP
+        d2 -c arlocfg.doArpMgmt false
+        
+        #set some default value 
+        d2 -c general.devicemodel RBR50
+        d2 -c general.devicename RBR50
+        d2 -c general.fwrevision "`cat /firmware_version`"
+        d2 -c general.fsn "`artmtd -r sn|head -1 |cut -d ':' -f 2-`"
+        d2 -c general.region "`artmtd -r region|head -1 |cut -d 'x' -f 2-`"
+        d2 -c general.defaultmac "`ifconfig br0|head -1|awk -F ' ' '{print $5}'`"
+        
+        #set arlo SSID/KEY
+        /bin/config set wlg_arlo_ssid="`d2 -s arlocfg.ssid`"
+        /bin/config set wlg_arlo_wpa2_psk="`d2 -s arlocfg.passphrase`"
+
+        if [ "`/bin/config get enable_arlo_function`" != "1" ];then
+            XAGENT_CLAIMED_URL=https://registration.ngxcld.com/registration/status
+            XAGENT_REGISTER_URL=https://registration.ngxcld.com/registration/register
+            XAGENT_ADVISOR_URL=https://advisor.ngxcld.com/advisor/direct
+            XAGENT_DISCOVERY_URL=https://presence.ngxcld.com/presence/presence
+            RGENIE_REMOTE_URL=https://genieremote.netgear.com/genie-remote/claimDevice
+
+
+            d2 -c xagentcfg[0].x_register_url  "${XAGENT_REGISTER_URL}"
+            d2 -c xagentcfg[0].x_claimed_url   "${XAGENT_CLAIMED_URL}"
+            d2 -c xagentcfg[0].x_discovery_url "${XAGENT_DISCOVERY_URL}"
+            d2 -c xagentcfg[0].x_advisor_url   "${XAGENT_ADVISOR_URL}"
+            d2 -c rgeniecfg[0].genie_remote_url "${RGENIE_REMOTE_URL}"
+        fi
+        
+      # ODMSTOP ORBI        
+}
+
+stop() {
+        killall d2d
+}
+
+boot() {
+    # ODMSTART ORBI
+    [ "`cat /tmp/orbi_type`" = "Satellite" ] && return
+    # ODMSTOP ORBI        
+    start
+}
+
+restart() {
+        stop
+        start
+}
+

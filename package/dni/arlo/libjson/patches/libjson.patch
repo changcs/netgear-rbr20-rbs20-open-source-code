@@ -1,0 +1,20 @@
+--- libjson/_internal/Source/NumberToString.h.orig	2017-11-14 10:57:17.496973961 -0800
++++ libjson/_internal/Source/NumberToString.h	2017-11-14 10:59:45.508968695 -0800
+@@ -60,7 +60,7 @@
+ 	   bool negative;
+ 
+ 	   START_MEM_SCOPE
+-	   long value = (long)val;
++	   T value = val;
+ 	   //first thing, check if it's negative, if so, make it positive
+ 	   if (value < 0){
+ 		  value = -value;
+@@ -96,7 +96,7 @@
+ 
+ 		  //create the string
+ 		  START_MEM_SCOPE
+-			 unsigned long value = (unsigned long)val;
++		     T value = val;
+ 			 do {
+ 				*runner-- = (json_char)(value % 10) + JSON_TEXT('0');
+ 			 } while(value /= 10);

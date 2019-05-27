@@ -1,0 +1,217 @@
+diff -rupN libjson/_internal/Source/JSONWorker.cpp libjson_new/_internal/Source/JSONWorker.cpp
+--- libjson/_internal/Source/JSONWorker.cpp	2012-05-30 05:14:36.000000000 -0700
++++ libjson_new/_internal/Source/JSONWorker.cpp	2015-09-22 12:39:35.099830373 -0700
+@@ -519,16 +519,16 @@ void JSONWorker::UnfixString(const json_
+ 		  case JSON_TEXT('\\'):	//backslash
+ 			 res += JSON_TEXT("\\\\");
+ 			 break;
++          case JSON_TEXT('\n'):	//newline character
++             res += JSON_TEXT("\\n");
++             break;
++          case JSON_TEXT('\r'):	//return character
++             res += JSON_TEXT("\\r");
++             break;
+ 		  #ifdef JSON_ESCAPE_WRITES
+ 			 case JSON_TEXT('\t'):	//tab character
+ 				res += JSON_TEXT("\\t");
+ 				break;
+-			 case JSON_TEXT('\n'):	//newline character
+-				res += JSON_TEXT("\\n");
+-				break;
+-			 case JSON_TEXT('\r'):	//return character
+-				res += JSON_TEXT("\\r");
+-				break;
+ 			 case JSON_TEXT('/'):	//forward slash
+ 				res += JSON_TEXT("\\/");
+ 				break;
+diff -rupN libjson/JSONOptions.h libjson_new/JSONOptions.h
+--- libjson/JSONOptions.h	2012-03-10 04:41:30.000000000 -0800
++++ libjson_new/JSONOptions.h	2015-09-22 12:22:27.166315053 -0700
+@@ -11,7 +11,7 @@
+  *  JSON_LIBRARY must be declared if libjson is compiled as a static or dynamic 
+  *  library.  This exposes a C-style interface, but none of the inner workings of libjson
+  */
+-#define JSON_LIBRARY
++//#define JSON_LIBRARY
+ 
+ 
+ /*
+@@ -87,14 +87,14 @@
+  *  and passing them around much faster.  It is recommended that this stay on for
+  *  most uses
+  */
+-#define JSON_REF_COUNT
++//#define JSON_REF_COUNT
+ 
+ 
+ /*
+  *  JSON_BINARY is used to support binary, which is base64 encoded and decoded by libjson,
+  *  if this option is not turned off, no base64 support is included
+  */
+-#define JSON_BINARY
++//#define JSON_BINARY
+ 
+ 
+ /*
+@@ -102,7 +102,7 @@
+  *  and decoding.  This may be useful if you want to obfuscate your json, or send binary data over
+  *  a network
+  */
+-#define JSON_EXPOSE_BASE64
++//#define JSON_EXPOSE_BASE64
+ 
+ 
+ /*
+@@ -215,7 +215,7 @@
+  *  JSON_ESCAPE_WRITES tells the libjson engine to escape special characters when it writes
+  *  out.  If this option is turned off, the json it outputs may not adhere to JSON standards
+  */
+-#define JSON_ESCAPE_WRITES
++//#define JSON_ESCAPE_WRITES
+ 
+ 
+ /*
+@@ -313,7 +313,7 @@
+  *  JSON_NO_EXCEPTIONS turns off any exception throwing by the library.  It may still use exceptions
+  *  internally, but the interface will never throw anything.
+  */
+-//#define JSON_NO_EXCEPTIONS
++#define JSON_NO_EXCEPTIONS
+ 
+ 
+ /*
+@@ -321,7 +321,7 @@
+  *  compatibility between major releases.  It is highly recommended that you move your functions
+  *  over to the new equivalents
+  */
+-#define JSON_DEPRECATED_FUNCTIONS
++//#define JSON_DEPRECATED_FUNCTIONS
+ 
+ 
+ /*
+diff -rupN libjson/libjson.h libjson_new/libjson.h
+--- libjson/libjson.h	2012-03-30 10:02:08.000000000 -0700
++++ libjson_new/libjson.h	2015-09-22 12:23:11.970316405 -0700
+@@ -213,26 +213,11 @@
+ 					return str;
+ 				#endif
+ 			}
+-			inline static std::wstring to_std_wstring(const json_string & str){
+-				#if (!defined(JSON_UNICODE)) || defined(JSON_MEMORY_CALLBACKS) || defined(JSON_MEMORY_POOL)
+-					return std::wstring(str.begin(), str.end());		
+-				#else
+-					return str;
+-				#endif
+-			}
+-			
+ 			inline static json_string to_json_string(const std::string & str){
+ 				#if defined(JSON_UNICODE) ||defined(JSON_MEMORY_CALLBACKS) || defined(JSON_MEMORY_POOL)
+ 					return json_string(str.begin(), str.end());		
+ 				#else
+ 					return str;
+-				#endif
+-			}
+-			inline static json_string to_json_string(const std::wstring & str){
+-				#if (!defined(JSON_UNICODE)) || defined(JSON_MEMORY_CALLBACKS) || defined(JSON_MEMORY_POOL)
+-					return json_string(str.begin(), str.end());		
+-				#else
+-					return str;
+ 				#endif
+ 			}
+ 		#endif
+diff -rupN libjson/makefile libjson_new/makefile
+--- libjson/makefile	2012-05-30 05:15:42.000000000 -0700
++++ libjson_new/makefile	2015-09-22 12:21:57.782314166 -0700
+@@ -131,11 +131,12 @@ objects        = internalJSONNode.o JSON
+ OS=$(shell uname)
+ 
+ # Defaults
+-ifeq ($(OS), Darwin)
+-	cxxflags_default = -fast -ffast-math -fexpensive-optimizations -DNDEBUG
+-else
+-	cxxflags_default = -O3 -ffast-math -fexpensive-optimizations -DNDEBUG
+-endif
++#~ ifeq ($(OS), Darwin)
++	#~ cxxflags_default = -fast -ffast-math -fexpensive-optimizations -DNDEBUG
++#~ else
++	#~ cxxflags_default = -O3 -ffast-math -fexpensive-optimizations -DNDEBUG
++#~ endif
++cxxflags_default = -O0 -DNDEBUG
+ cxxflags_small   = -Os -ffast-math -DJSON_LESS_MEMORY -DNDEBUG
+ cxxflags_debug   = -g -DJSON_SAFE -DJSON_DEBUG
+ cxxflags_shared  = -f$(PIC)
+@@ -266,7 +267,7 @@ install_headers: banner
+ 	cp -r ./$(srcdir)/JSONDefs $(include_path)/$(libname_hdr)/$(srcdir)
+ 	chmod -R a+r $(include_path)/$(libname_hdr)
+ 	find  $(include_path)/$(libname_hdr) -type d -exec chmod a+x {} \;
+-	cp -rv $(srcdir)/Dependencies/ $(include_path)/$(libname_hdr)/$(srcdir)
++	cp -rv $(srcdir)/../Dependencies/ $(include_path)/$(libname_hdr)/$(srcdir)
+ 	@echo "Install header files: Done."
+ 
+ clean: banner
+diff -rupN libjson/.rej libjson_new/.rej
+--- libjson/.rej	1969-12-31 16:00:00.000000000 -0800
++++ libjson_new/.rej	2015-09-22 12:21:28.666313288 -0700
+@@ -0,0 +1,29 @@
++--- makefile.orig	2012-05-30 05:15:42.000000000 -0700
+++++ makefile	2014-07-06 12:24:34.191943792 -0700
++@@ -131,11 +131,12 @@
++ OS=$(shell uname)
++ 
++ # Defaults
++-ifeq ($(OS), Darwin)
++-	cxxflags_default = -fast -ffast-math -fexpensive-optimizations -DNDEBUG
++-else
++-	cxxflags_default = -O3 -ffast-math -fexpensive-optimizations -DNDEBUG
++-endif
+++#~ ifeq ($(OS), Darwin)
+++	#~ cxxflags_default = -fast -ffast-math -fexpensive-optimizations -DNDEBUG
+++#~ else
+++	#~ cxxflags_default = -O3 -ffast-math -fexpensive-optimizations -DNDEBUG
+++#~ endif
+++cxxflags_default = -O0 -DNDEBUG
++ cxxflags_small   = -Os -ffast-math -DJSON_LESS_MEMORY -DNDEBUG
++ cxxflags_debug   = -g -DJSON_SAFE -DJSON_DEBUG
++ cxxflags_shared  = -f$(PIC)
++@@ -266,7 +267,7 @@
++ 	cp -r ./$(srcdir)/JSONDefs $(include_path)/$(libname_hdr)/$(srcdir)
++ 	chmod -R a+r $(include_path)/$(libname_hdr)
++ 	find  $(include_path)/$(libname_hdr) -type d -exec chmod a+x {} \;
++-	cp -rv $(srcdir)/Dependencies/ $(include_path)/$(libname_hdr)/$(srcdir)
+++	cp -rv $(srcdir)/../Dependencies/ $(include_path)/$(libname_hdr)/$(srcdir)
++ 	@echo "Install header files: Done."
++ 
++ clean: banner
+diff -rupN libjson/..rej libjson_new/..rej
+--- libjson/..rej	1969-12-31 16:00:00.000000000 -0800
++++ libjson_new/..rej	2015-09-22 12:21:44.782313774 -0700
+@@ -0,0 +1,29 @@
++--- makefile.orig	2012-05-30 05:15:42.000000000 -0700
+++++ makefile	2014-07-06 12:24:34.191943792 -0700
++@@ -131,11 +131,12 @@
++ OS=$(shell uname)
++ 
++ # Defaults
++-ifeq ($(OS), Darwin)
++-	cxxflags_default = -fast -ffast-math -fexpensive-optimizations -DNDEBUG
++-else
++-	cxxflags_default = -O3 -ffast-math -fexpensive-optimizations -DNDEBUG
++-endif
+++#~ ifeq ($(OS), Darwin)
+++	#~ cxxflags_default = -fast -ffast-math -fexpensive-optimizations -DNDEBUG
+++#~ else
+++	#~ cxxflags_default = -O3 -ffast-math -fexpensive-optimizations -DNDEBUG
+++#~ endif
+++cxxflags_default = -O0 -DNDEBUG
++ cxxflags_small   = -Os -ffast-math -DJSON_LESS_MEMORY -DNDEBUG
++ cxxflags_debug   = -g -DJSON_SAFE -DJSON_DEBUG
++ cxxflags_shared  = -f$(PIC)
++@@ -266,7 +267,7 @@
++ 	cp -r ./$(srcdir)/JSONDefs $(include_path)/$(libname_hdr)/$(srcdir)
++ 	chmod -R a+r $(include_path)/$(libname_hdr)
++ 	find  $(include_path)/$(libname_hdr) -type d -exec chmod a+x {} \;
++-	cp -rv $(srcdir)/Dependencies/ $(include_path)/$(libname_hdr)/$(srcdir)
+++	cp -rv $(srcdir)/../Dependencies/ $(include_path)/$(libname_hdr)/$(srcdir)
++ 	@echo "Install header files: Done."
++ 
++ clean: banner

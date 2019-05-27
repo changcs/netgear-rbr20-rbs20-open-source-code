@@ -1,0 +1,21 @@
+#!/bin/sh
+
+if [ "x`/bin/config get enable_arlo_function`" != "x1" ];then
+    return
+fi
+sleep 60
+> /tmp/netscan/arlo_list
+while [ 1 ];do
+    > /tmp/netscan/arlo_list
+    for num in `seq 0 7`;do
+        if [ "x`d2 -s arlocameras[$num].connected`" = "xtrue" ];then
+            ip="`d2 -s arlocameras[$num].cameraip`"
+            mac="`d2 -s arlocameras[$num].cameramac`"
+            echo "$mac,$ip" >> /tmp/netscan/arlo_list
+        fi
+    done
+    killall -SIGUSR2 net-scan
+    killall -SIGUSR2 acld
+    sleep 60
+done
+

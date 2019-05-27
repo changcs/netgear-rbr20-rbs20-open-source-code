@@ -1,0 +1,27 @@
+#!/bin/sh /etc/rc.common
+#
+# Copyright: (c) 2017 Netgear, Inc.
+#            All rights reserved
+#
+
+START=99
+
+
+stop() {
+    killall arloen.sh
+}
+
+start() {
+    stop
+    /usr/bin/arloen.sh &
+    pidof restartsw.sh || /usr/sbin/restartsw.sh &  
+}
+
+boot() {
+    # ODMSTART ORBI
+    [ "`cat /tmp/orbi_type`" = "Satellite" ] && return
+    [ "x`/bin/config get enable_arlo_function`" != "x1" ] && return
+    /usr/sbin/arlo-net-scan &
+    # ODMSTOP ORBI
+    start
+}
