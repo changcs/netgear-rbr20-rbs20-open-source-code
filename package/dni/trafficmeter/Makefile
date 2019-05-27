@@ -43,8 +43,9 @@ define Package/trafficmeter/install
 	install -d -m0755 $(1)/usr
 	install -d -m0755 $(1)/usr/traffic_meter
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/sbin/generate_traffic_meter_conf $(1)/sbin/generate_traffic_meter_conf
-	$(CP) $(PKG_BUILD_DIR)/files/last_* $(1)/usr/traffic_meter/
-	$(CP) $(PKG_BUILD_DIR)/files/network_status $(1)/usr/traffic_meter/
+	$(LN) /tmp/ppp/ppp_last_conn_time $(1)/usr/traffic_meter/last_conn_time
+	$(LN) /tmp/ppp/ppp_last_stop_time $(1)/usr/traffic_meter/last_stop_time
+	$(LN) /tmp/ppp/ppp0-status $(1)/usr/traffic_meter/network_status
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/traffic_meter $(1)/usr/traffic_meter/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/traffic_statistics $(1)/usr/traffic_meter/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/traffic_meter.init $(1)/etc/init.d/traffic_meter

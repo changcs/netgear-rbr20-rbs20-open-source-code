@@ -26,7 +26,11 @@ generate_makefile()
 		FILES_DIR="files"
 		SCRIPT_DIR="scripts"
 		
-		all %::
+		all:
+			$tab\$(MAKE) -C \$(SOURCE_DIR) \$@
+			$tab\$(MAKE) -C \$(SCRIPT_DIR) \$@
+		
+		install:
 			$tab\$(MAKE) -C \$(SOURCE_DIR) \$@
 			$tab\$(MAKE) -C \$(SCRIPT_DIR) \$@
 	EOF

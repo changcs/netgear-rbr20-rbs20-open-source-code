@@ -46,6 +46,8 @@ endif
 define Kernel/Prepare/Default
 	-mkdir -p $(KERNEL_BUILD_DIR)/linux-$(LINUX_VERSION)
 	$(CP) $(GIT_HOME)/qsdk-ipq4019-linux.git/* $(KERNEL_BUILD_DIR)/linux-$(LINUX_VERSION)/
+	test -d $(KERNEL_BUILD_DIR)/linux-$(LINUX_VERSION)/arch/arm/boot/dts/include || mkdir -p $(KERNEL_BUILD_DIR)/linux-$(LINUX_VERSION)/arch/arm/boot/dts/include
+	test -L $(KERNEL_BUILD_DIR)/linux-$(LINUX_VERSION)/arch/arm/boot/dts/include/dt-bindings || ln -sf ../../../../../include/dt-bindings $(KERNEL_BUILD_DIR)/linux-$(LINUX_VERSION)/arch/arm/boot/dts/include/dt-bindings
 	@echo "please syn with dniserver"
 	$(Kernel/Patch)
 endef

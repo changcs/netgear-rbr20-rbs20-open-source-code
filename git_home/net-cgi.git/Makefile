@@ -33,7 +33,13 @@ SCRIPT_DIR:="scripts"
 WWW_DIR:="www"
 WWW_DIR_CC:="www.satellite"
 
-all %::
+all:
+	$(MAKE) -C $(WWW_DIR) $@
+	$(MAKE) -C $(WWW_DIR_CC) $@
+	$(MAKE) -C $(SCRIPT_DIR) $@
+	$(MAKE) -C $(FILES_DIR) $@
+
+install:
 	$(MAKE) -C $(WWW_DIR) $@
 	$(MAKE) -C $(WWW_DIR_CC) $@
 	$(MAKE) -C $(SCRIPT_DIR) $@

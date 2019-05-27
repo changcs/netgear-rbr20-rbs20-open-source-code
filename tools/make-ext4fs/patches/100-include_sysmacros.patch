@@ -1,0 +1,10 @@
+--- make-ext4fs-2015-05-01.orig/contents.c	2015-05-02 00:14:41.000000000 +0800
++++ make-ext4fs-2015-05-01/contents.c	2019-05-24 13:57:21.000000000 +0800
+@@ -19,6 +19,7 @@
+ #include <stdio.h>
+ 
+ #include <private/android_filesystem_capability.h>
++#include <sys/sysmacros.h>
+ 
+ #define XATTR_SELINUX_SUFFIX "selinux"
+ #define XATTR_CAPS_SUFFIX "capability"

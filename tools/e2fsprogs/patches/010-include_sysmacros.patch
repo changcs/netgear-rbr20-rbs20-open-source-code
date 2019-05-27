@@ -1,0 +1,10 @@
+--- e2fsprogs-1.42.8.orig/lib/blkid/devname.c	2012-07-06 21:37:27.000000000 +0800
++++ e2fsprogs-1.42.8/lib/blkid/devname.c	2019-05-24 14:07:45.000000000 +0800
+@@ -37,6 +37,7 @@
+ #include <sys/mkdev.h>
+ #endif
+ #include <time.h>
++#include <sys/sysmacros.h>
+ 
+ #include "blkidP.h"
+ 
